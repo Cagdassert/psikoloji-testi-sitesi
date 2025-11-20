@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Şekiller Sıralama Testi</title>
+  <style>
+    :root{
+      --bg:#0f172a; --panel:#0b1220; --muted:#94a3b8; --text:#e5e7eb;
+      --blue:#38bdf8; --amber:#f59e0b; --rose:#f87171; 
+      --ok:#10b981; --err:#ef4444; --border:#1f2937;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:radial-gradient(1200px 800px at 50% -20%,#1f2937 0%,var(--bg) 60%);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Arial,sans-serif;
+      display:grid;place-items:center
+    }
+    .app{
+      width:min(100%,900px);
+      background:linear-gradient(180deg,#0b1220,#0b1220ee);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:20px;
+      box-shadow:0 10px 40px rgba(0,0,0,.35)
+    }
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .title{font-weight:800}
+    .badges{display:flex;gap:12px;flex-wrap:wrap}
+    .badge{background:#0a0f1c;border:1px solid var(--border);border-radius:12px;padding:8px 12px;font-variant-numeric:tabular-nums}
+
+    .stage{position:relative;margin-top:16px;border:1px solid var(--border);border-radius:16px;padding:18px;background:var(--panel);min-height:520px;overflow:hidden}
+    .instruction{background:#0a0f1c;border:1px dashed #21314f;border-radius:14px;padding:12px 14px;color:#d1d5db;line-height:1.45}
+    .arena{position:relative;height:380px;border:1px solid #16243b;border-radius:12px;background:linear-gradient(180deg,#0b1324,#0a0f1c)}
+
+    .controls{display:flex;justify-content:center;align-items:center;gap:12px;margin-top:12px}
+    .btn{border:none;border-radius:12px;padding:10px 14px;font-weight:800;color:white;
+      background:linear-gradient(180deg,#374151,#1f2937);border:1px solid #374151;cursor:pointer}
+    .btn:disabled{opacity:.45;cursor:not-allowed}
+    .btn-start{background:linear-gradient(180deg,#2563eb,#1d4ed8);border-color:#1d4ed8}
+
+    .scoreline{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;font-variant-numeric:tabular-nums}
+    footer{margin-top:10px;color:var(--muted);font-size:12px;text-align:center}
+    .muted{color:var(--muted)}
+    .nav{display:flex;gap:8px;flex-wrap:wrap}
+    .nav a{color:#93c5fd;text-decoration:none;border:1px solid var(--border);padding:6px 10px;border-radius:10px;background:#0a0f1c}
+
+    .shape{
+      position:absolute;
+      border:none;
+      padding:0;
+      cursor:pointer;
+      user-select:none;
+      pointer-events:auto;
+      z-index:1;
+      transition:transform .08s ease, box-shadow .1s ease;
+    }
+    .shape:active{transform:scale(.97)}
+    .circle{border-radius:999px;background:var(--blue)}
+    .square{background:var(--rose)}
+    .shape.ok{box-shadow:0 0 0 3px var(--ok)}
+    .shape.wrong{box-shadow:0 0 0 3px var(--err)}
+
+    .triangle{background:transparent;}
+    .triangle svg{width:100%;height:100%;display:block;}
+    .triangle .poly{fill:var(--amber);stroke:transparent;stroke-width:0;}
+    .triangle.ok{box-shadow:none!important;}
+    .triangle.ok .poly{stroke:var(--ok);stroke-width:3;}
+    .triangle.wrong{box-shadow:none!important;}
+    .triangle.wrong .poly{stroke:var(--err);stroke-width:3;}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="title">Şekiller Sıralama Testi</div>
+      <div class="badges">
+        <div class="badge">Puan: <span id="score">0</span></div>
+        <div class="badge">Doğru: <span id="correct">0</span></div>
+        <div class="badge">Hatalı: <span id="wrong">0</span></div>
+        <div class="badge">Aşama: <span id="phase">Daire</span></div>
+        <div class="badge">Deneme: <span id="practiceLeft">2</span></div>
+      </div>
+    </header>
+
+    <section class="stage">
+      <div class="instruction" id="inst">
+        <strong>Talimatlar:</strong>
+        <ol>
+          <li>Önce <b>daireleri</b>, sonra <b>üçgenleri</b>, en son <b>kareleri</b> <i>küçükten büyüğe</i> tıklayın.</li>
+          <li><b>Süre yok</b>. Doğru +5, yanlış −5. İlk 2 tıklama deneme (puan yazılmaz).</li>
+        </ol>
+      </div>
+
+      <div class="arena" id="arena"></div>
+
+      <div class="controls">
+        <button id="startBtn" class="btn btn-start">Başlat</button>
+        <button id="finishBtn" class="btn" disabled>Bitir</button>
+      </div>
+
+      <div class="scoreline">
+        <div class="muted">Sıra: <b>Daire → Üçgen → Kare</b> • Her grupta <i>küçükten büyüğe</i></div>
+        
+      </div>
+    </section>
+
+    <footer>© <span id="year"></span> Şekiller Testi</footer>
+  </div>
+
+  <script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+  const $ = s => document.querySelector(s);
+  const arena = $('#arena'), startBtn = $('#startBtn'), finishBtn = $('#finishBtn');
+  const scoreEl = $('#score'), correctEl = $('#correct'), wrongEl = $('#wrong'),
+        phaseEl = $('#phase'), practiceEl = $('#practiceLeft');
+
+  const order = ['circle','triangle','square'];
+  let currentOrderIdx = 0, shapes = [], score = 0, correct = 0, wrong = 0, practiceLeft = 2;
+  let startTime = null;
+
+  function updateHud(){
+    scoreEl.textContent = score;
+    correctEl.textContent = correct;
+    wrongEl.textContent = wrong;
+    practiceEl.textContent = practiceLeft;
+    phaseEl.textContent = (['Daire','Üçgen','Kare'][currentOrderIdx] || 'Bitti');
+  }
+
+  function createShapes(){
+    shapes.length = 0;
+    for(const type of order){
+      for(let size=1; size<=5; size++){
+        shapes.push({id:crypto.randomUUID(),type,size,clicked:false,el:null});
+      }
+    }
+  }
+
+  function placeShapes(){
+    arena.innerHTML = '';
+    const pad = 18, gap = 12;
+    const W = arena.clientWidth, H = arena.clientHeight;
+    const placed = [];
+    const collides = (x,y,w,h)=>{
+      const a = {x:x-gap, y:y-gap, w:w+2*gap, h:h+2*gap};
+      return placed.some(b => !(a.x+a.w < b.x || b.x+b.w < a.x || a.y+a.h < b.y || b.y+b.h < a.y));
+    };
+
+    for(const type of order){
+      const group = shapes.filter(s=>s.type===type).sort(()=>Math.random()-0.5);
+      for(const s of group){
+        const el = document.createElement('button');
+        el.className = `shape ${s.type}`;
+        const px = 28 + s.size * 8;
+        el.style.width = px + 'px';
+        el.style.height = px + 'px';
+
+        let x, y, tries = 0;
+        do {
+          x = Math.random() * (W - px - 2*pad) + pad;
+          y = Math.random() * (H - px - 2*pad) + pad;
+          tries++;
+          if(tries > 300) break;
+        } while(collides(x, y, px, px));
+        placed.push({x, y, w:px, h:px});
+        el.style.left = x + 'px';
+        el.style.top = y + 'px';
+
+        if(s.type === 'triangle'){
+          const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+          svg.setAttribute('viewBox','0 0 100 100');
+          const poly = document.createElementNS('http://www.w3.org/2000/svg','polygon');
+          poly.setAttribute('points','50,4 4,96 96,96');
+          poly.setAttribute('class','poly');
+          svg.appendChild(poly);
+          el.appendChild(svg);
+        }
+
+        el.addEventListener('click',()=>onClickShape(s,el));
+        arena.appendChild(el);
+        s.el = el;
+      }
+    }
+  }
+
+  function smallestRemaining(type){
+    return shapes.filter(x=>!x.clicked && x.type===type).sort((a,b)=>a.size-b.size)[0] || null;
+  }
+
+  function onClickShape(s, el){
+    const curType = order[currentOrderIdx];
+    let need = smallestRemaining(curType);
+    if(!need){
+      currentOrderIdx++;
+      updateHud();
+      if(currentOrderIdx >= order.length){ finishBtn.disabled = false; return; }
+      need = smallestRemaining(order[currentOrderIdx]);
+    }
+
+    const ok = (s.type === order[currentOrderIdx] && s.id === need.id);
+    const demo = practiceLeft > 0;
+    if(ok){
+      s.clicked = true; el.disabled = true; el.classList.add('ok');
+      if(!demo){ correct++; score += 5; }
+    } else {
+      el.classList.add('wrong');
+      setTimeout(()=>el.classList.remove('wrong'),220);
+      if(!demo){ wrong++; score -= 5; }
+    }
+    if(demo) practiceLeft--;
+    updateHud();
+    if(shapes.every(x=>x.clicked)) finishBtn.disabled = false;
+  }
+
+  function start(){
+    startBtn.disabled = true;
+    finishBtn.disabled = true;
+    $('#inst').style.display = 'none';
+    currentOrderIdx = 0; score = 0; correct = 0; wrong = 0; practiceLeft = 2;
+    startTime = Date.now();
+    updateHud();
+    createShapes(); placeShapes();
+  }
+
+ function finish(){
+  const endTime = Date.now();
+  const durationSec = Math.round((endTime - startTime) / 1000);
+
+  const result = {
+    score,
+    correct,
+    wrong,
+    durationSec,
+    timestamp: new Date().toISOString()
+  };
+
+  
+  localStorage.setItem('test3Result', JSON.stringify(result));
+
+  
+  if (window.TestApi) {
+    TestApi.saveTestResult('test3', {
+      score,
+      correct,
+      wrong,
+      durationSec
+    });
+  }
+
+  startBtn.disabled = false;
+
+  setTimeout(() => {
+    window.location.href = './user/summary.html';
+  }, 2000);
+}
+
+
+  startBtn.addEventListener('click', start);
+  finishBtn.addEventListener('click', finish);
+</script>
+<script src="api.js"></script>
+</body>
+</html>

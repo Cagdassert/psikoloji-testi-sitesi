@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="tr">
+  
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Harf/Sayı Tepki Testi</title>
+  <style>
+    :root {
+      --bg:#0f172a; 
+      --panel:#111827; 
+      --text:#e5e7eb;
+      --muted:#9ca3af; 
+      --green:#10b981; 
+      --red:#ef4444; 
+      --accent:#3b82f6; 
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, "Segoe UI", Arial, sans-serif;
+      background: radial-gradient(1200px 800px at 50% -20%, #1f2937 0%, var(--bg) 60%);
+      color: var(--text);
+      display: grid; place-items: center;
+    }
+    .app {
+      width: min(100%, 900px);
+      background: linear-gradient(180deg, #0b1220, #0b1220ea);
+      border: 1px solid #1f2937;
+      border-radius: 18px; padding: 20px; box-shadow: 0 10px 40px rgba(0,0,0,.35);
+    }
+    header { display:flex; align-items:center; justify-content:space-between; gap:16px; }
+    .title { font-weight:700; letter-spacing:.2px; }
+    .timers { display:flex; gap:16px; }
+    .badge { background:#111827; border:1px solid #1f2937; padding:10px 14px; border-radius:12px; font-variant-numeric: tabular-nums; }
+
+    .stage {
+      position: relative; margin-top:18px; border:1px solid #1f2937; border-radius:16px; padding:24px; background: #0b1220;
+      min-height: 360px; display:grid; grid-template-rows: auto 1fr auto; gap:16px;
+      overflow:hidden;
+    }
+    .instruction {
+      background:#0a0f1c; border:1px dashed #22304b; border-radius:14px; padding:14px 16px; color:#d1d5db; line-height:1.45;
+    }
+    .arena { position:relative; display:grid; place-items:center; height:220px; }
+    .stimulus { font-size: 120px; font-weight: 800; letter-spacing: 2px; color:#e5e7eb; text-shadow: 0 8px 30px rgba(0,0,0,.6); user-select:none; }
+
+    .blinkers { position:absolute; inset:0; pointer-events:none; }
+    .blinker { position:absolute; width:80px; height:80px; border-radius:999px; opacity:.35; filter: blur(2px);
+      box-shadow: 0 0 30px 10px currentColor inset, 0 0 50px 10px currentColor;
+      animation: pulse 2.2s infinite ease-in-out; }
+    .blinker.left { left:14px; top:50%; transform:translateY(-50%); color:#fbbf24; animation-delay:.4s; }
+    .blinker.right { right:14px; top:50%; transform:translateY(-50%); color:#22d3ee; animation-delay:1.2s; }
+    @keyframes pulse { 0%,100%{ opacity:.18; transform:translateY(-50%) scale(1);} 50%{ opacity:.55; transform:translateY(-50%) scale(1.12);} }
+
+    .controls { display:flex; align-items:center; justify-content:center; gap:14px; flex-wrap:wrap; }
+    .btn { border:none; border-radius:12px; padding:12px 16px; font-weight:700; cursor:pointer; color:white; transition: transform .08s ease, opacity .2s ease;
+      background: linear-gradient(180deg, #374151, #1f2937); border:1px solid #374151; }
+    .btn:disabled { opacity:.4; cursor:not-allowed; }
+    .btn:active { transform: translateY(1px) scale(.99); }
+
+    .btn-start { background: linear-gradient(180deg, #2563eb, #1d4ed8); border-color:#1d4ed8; }
+    .btn-green { background: linear-gradient(180deg, #10b981, #059669); border-color:#059669; }
+    .btn-red { background: linear-gradient(180deg, #ef4444, #b91c1c); border-color:#b91c1c; }
+
+    .scoreline { display:flex; align-items:center; justify-content:space-between; gap:10px; font-variant-numeric: tabular-nums; flex-wrap:wrap; }
+
+    .log { margin-top:14px; max-height:140px; overflow:auto; font-size:14px; color:#cbd5e1; background:#0a0f1c; border:1px solid #1f2937; border-radius:12px; }
+    .log table { width:100%; border-collapse:collapse; }
+    .log th, .log td { padding:8px 10px; border-bottom:1px solid #1f2937; text-align:left; white-space:nowrap; }
+    .log tr:last-child td { border-bottom: none; }
+
+    .cursor { position:fixed; width:22px; height:22px; border:2px solid #e5e7eb; border-radius:50%; pointer-events:none; z-index:9999; mix-blend-mode: difference; transform: translate(-50%, -50%); transition: transform .05s linear; }
+    .cursor.click { transform: translate(-50%, -50%) scale(.75); }
+
+    footer { margin-top:10px; color:var(--muted); font-size:12px; text-align:center; }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <header>
+      <div class="title">Harf/Sayı Tepki Testi</div>
+      <div class="timers">
+        <div class="badge">Süre: <span id="timeLeft">60</span> sn</div>
+        <div class="badge">Puan: <span id="score">0</span></div>
+      </div>
+    </header>
+
+    <section class="stage">
+      <div class="instruction" id="instruction">
+        <strong>Talimatlar :</strong>
+        <p>Bu testte ekranın üst kısmında rastgele sırayla harfler ve sayılar görüntülenecektir. Tüm karakterler aynı renk ve boyuttadır. Yeşil ve kırmızı olmak üzere iki düğme bulunmaktadır.</p>
+        <ul>
+          <li><strong>Harf görüntülendiğinde</strong> yalnızca <strong>yeşil</strong> düğmeye tıklayınız.</li>
+          <li><strong>Sayı görüntülendiğinde</strong> <em>hiçbir düğmeye tıklamayınız</em>.</li>
+        </ul>
+        <p><strong>Puanlama:</strong> Harf+yeşil: <strong>+5</strong>; Harf+yanıtsız: <strong>0</strong>; Sayı+herhangi bir tıklama: <strong>-5</strong>; Sayı+yanıtsız: <strong>+5</strong>.</p>
+        <p>Test süresi <strong>60 saniyedir</strong>. Sayaç sıfıra ulaştığında uygulama otomatik olarak sona erer.</p>
+      </div>
+
+      <div class="arena">
+        <div class="blinkers">
+          <div class="blinker left"></div>
+          <div class="blinker right"></div>
+        </div>
+        <div id="stimulus" class="stimulus" aria-live="polite">—</div>
+      </div>
+
+      <div class="controls">
+        <button id="startBtn" class="btn btn-start">Başlat</button>
+        <button id="greenBtn" class="btn btn-green" disabled>YEŞİL</button>
+        <button id="redBtn" class="btn btn-red" disabled>KIRMIZI</button>
+        <button id="summaryBtn" class="btn">Sonuçlarım</button>
+        <button id="nextTestBtn" class="btn" style="display:none;">Sonraki teste geç</button>
+      </div>
+
+      <div class="scoreline">
+        <div>Doğru (Harf+Yeşil): <span id="hits">0</span> • Kaçırma (Harf+Yanıtsız): <span id="misses">0</span> • Hatalı Tıklama (Sayı): <span id="falseAlarms">0</span></div>
+        <div>Toplam Uyarıcı: <span id="totalStim">0</span></div>
+      </div>
+
+      <div class="log" aria-label="Olay günlüğü">
+        <table>
+          <thead>
+            <tr><th>Zaman</th><th>Uyarıcı</th><th>Tür</th><th>Yanıt</th><th>Puan</th></tr>
+          </thead>
+          <tbody id="logBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>
+      © <span id="year"></span> Tepki Testi • Basit tarayıcı tabanlı deney aracı
+    </footer>
+  </div>
+
+  <div id="fakeCursor" class="cursor"></div>
+
+  <script>
+  const $ = (sel) => document.querySelector(sel);
+  const timeLeftEl = $('#timeLeft');
+  const scoreEl = $('#score');
+  const stimEl = $('#stimulus');
+  const startBtn = $('#startBtn');
+  const greenBtn = $('#greenBtn');
+  const redBtn = $('#redBtn');
+  const summaryBtn = $('#summaryBtn');
+  const nextTestBtn = $('#nextTestBtn'); 
+  const hitsEl = $('#hits');
+  const missesEl = $('#misses');
+  const falseAlarmsEl = $('#falseAlarms');
+  const totalStimEl = $('#totalStim');
+  const logBody = $('#logBody');
+  const instruction = $('#instruction');
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  const fakeCursor = $('#fakeCursor');
+  document.addEventListener('mousemove', (e)=>{
+    fakeCursor.style.left = e.clientX + 'px';
+    fakeCursor.style.top = e.clientY + 'px';
+  });
+  document.addEventListener('mousedown', ()=>{
+    fakeCursor.classList.add('click');
+  });
+  document.addEventListener('mouseup', ()=>{
+    fakeCursor.classList.remove('click');
+  });
+
+  let timerId = null;           
+  let stimTimerId = null;       
+  let running = false;
+  let timeLeft = 60;            
+  let score = 0;
+  let totalStim = 0;
+  let hits = 0, misses = 0, falseAlarms = 0;
+
+  let currentStim = null;       
+  let currentType = null;      
+  let responded = false;        
+
+  const STIM_INTERVAL = 1200;   
+  const RESPONSE_WINDOW = 1000; 
+
+  const LETTERS = Array.from('ABCDEFGHJKLMNPQRSTUVWXYZİŞĞÜÇÖ'); 
+  const NUMBERS = Array.from('0123456789');
+
+  function randomStimulus(){
+    const isLetter = Math.random() < 0.5;
+    if(isLetter){
+      const ch = LETTERS[Math.floor(Math.random()*LETTERS.length)];
+      return { ch, type:'letter' };
+    } else {
+      const ch = NUMBERS[Math.floor(Math.random()*NUMBERS.length)];
+      return { ch, type:'number' };
+    }
+  }
+
+  function logEvent({ch, type, response, deltaScore}){
+    const row = document.createElement('tr');
+    const now = new Date();
+    const t = now.toLocaleTimeString('tr-TR', { hour12:false });
+    row.innerHTML = `<td>${t}</td><td style="font-weight:700">${ch}</td><td>${type}</td><td>${response}</td><td>${deltaScore>0?'+':''}${deltaScore}</td>`;
+    logBody.prepend(row);
+  }
+
+  function presentStimulus(){
+    if(!running) return;
+
+    if(currentType === 'letter' && responded === false){
+      score += 0; misses++;
+      scoreEl.textContent = score;
+      missesEl.textContent = misses;
+      logEvent({ ch: currentStim, type: 'harf', response: 'yanıtsız', deltaScore: 0 });
+    }
+
+    const { ch, type } = randomStimulus();
+    currentStim = ch; currentType = type; responded = false;
+    stimEl.textContent = ch; totalStim++; totalStimEl.textContent = totalStim;
+
+    greenBtn.disabled = false; redBtn.disabled = false;
+
+    setTimeout(()=>{
+      greenBtn.disabled = true; redBtn.disabled = true;
+      if(currentType === 'number' && responded === false){
+        score += 5;
+        scoreEl.textContent = score;
+        logEvent({ ch: currentStim, type: 'sayı', response: 'yanıtsız', deltaScore: +5 });
+      }
+    }, RESPONSE_WINDOW);
+
+    stimTimerId = setTimeout(presentStimulus, STIM_INTERVAL);
+  }
+
+  function handleResponse(which){
+    if(!running) return;
+    if(greenBtn.disabled && redBtn.disabled) return; 
+    if(responded) return; 
+
+    responded = true;
+    let delta = 0; let responseLabel = which === 'green' ? 'yeşil' : 'kırmızı';
+
+    if(currentType === 'letter'){
+      delta = +5;
+      hits++; hitsEl.textContent = hits;
+    } else if(currentType === 'number'){
+      delta = -5;
+      falseAlarms++; falseAlarmsEl.textContent = falseAlarms;
+    }
+
+    score += delta; scoreEl.textContent = score;
+    logEvent({ ch: currentStim, type: currentType==='letter' ? 'harf' : 'sayı', response: responseLabel, deltaScore: delta });
+  }
+
+  function start(){
+    if(running) return;
+    running = true; timeLeft = 60; score = 0; totalStim = 0; hits = 0; misses = 0; falseAlarms = 0;
+    scoreEl.textContent = 0; timeLeftEl.textContent = 60; totalStimEl.textContent = 0; hitsEl.textContent = 0; missesEl.textContent = 0; falseAlarmsEl.textContent = 0;
+    instruction.style.display = 'none';
+    logBody.innerHTML = '';
+
+    summaryBtn.disabled = true;
+    nextTestBtn.style.display = 'none';
+
+    timerId = setInterval(()=>{
+      timeLeft--; timeLeftEl.textContent = timeLeft;
+      if(timeLeft <= 0){
+        stop();
+      }
+    }, 1000);
+
+    
+    stimEl.textContent = '...';
+    setTimeout(presentStimulus, 500);
+
+    startBtn.disabled = true; 
+  }
+
+  function stop() {
+    running = false;
+    clearInterval(timerId); timerId = null;
+    clearTimeout(stimTimerId); stimTimerId = null;
+
+    greenBtn.disabled = true;
+    redBtn.disabled = true;
+    startBtn.disabled = false;
+    stimEl.textContent = 'Bitti';
+
+    summaryBtn.disabled = false;
+
+    if (currentType === 'letter' && responded === false) {
+      misses++;
+      missesEl.textContent = misses;
+      logEvent({ ch: currentStim, type: 'harf', response: 'yanıtsız', deltaScore: 0 });
+    }
+
+    const summary = document.createElement('tr');
+    summary.innerHTML = `<td colspan="5" style="text-align:center; color:#93c5fd; font-weight:700">
+      Süre bitti • Toplam puan: ${score} • Uyarıcı: ${totalStim} • Doğru: ${hits} • Kaçırma: ${misses} • Hatalı tıklama: ${falseAlarms}
+    </td>`;
+    logBody.prepend(summary);
+
+    instruction.style.display = '';
+
+    const result = {
+      score,
+      hits,
+      misses,
+      falseAlarms,
+      totalStim,
+      timestamp: new Date().toISOString()
+    };
+    localStorage.setItem('test1Result', JSON.stringify(result));
+
+    (async () => {
+      const timeout = new Promise(resolve => setTimeout(resolve, 3000)); 
+      
+      try {
+        if (window.TestApi && typeof TestApi.saveTestResult === 'function') {
+          console.log('Backend\'e kayıt yapılıyor (test1)...');
+          await Promise.race([
+            TestApi.saveTestResult('test1', result),
+            timeout
+          ]);
+          console.log('Backend kaydı (test1) tamamlandı!');
+        }
+      } catch (err) {
+        console.error('Backend kayıt hatası (test1):', err);
+      }
+    })();
+
+    nextTestBtn.style.display = 'inline-block';
+  }
+
+  startBtn.addEventListener('click', start);
+  greenBtn.addEventListener('click', ()=>handleResponse('green'));
+  redBtn.addEventListener('click', ()=>handleResponse('red'));
+
+  summaryBtn.addEventListener('click', () => {
+    if (summaryBtn.disabled) return; 
+    window.location.href = './user/summary.html';
+  });
+
+  nextTestBtn.addEventListener('click', () => {
+    window.location.href = 'test2.html'; 
+  });
+
+  </script>
+  <script src="api.js"></script>
+
+</body>
+</html>

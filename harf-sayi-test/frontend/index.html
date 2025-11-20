@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Giriş Yap</title>
+  <link rel="stylesheet" href="common.css" />
+  <style>
+    .app {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(1200px 800px at 50% -20%, #1f2937 0%, var(--bg) 60%);
+    }
+    .login-box {
+      background: var(--panel);
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.4);
+      width: 100%;
+      max-width: 420px;
+      display: grid;
+      gap: 16px;
+    }
+    .login-box h2 {
+      margin: 0 0 4px;
+    }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      background: #020617;
+      padding: 4px;
+      border-radius: 999px;
+    }
+    .tabs button {
+      flex: 1;
+      border: none;
+      padding: 8px 0;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .tabs button.active {
+      background: #1d4ed8;
+      color: white;
+    }
+    .login-box input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #1f2937;
+      background: #020617;
+      color: var(--text);
+    }
+    .login-box button.primary {
+      margin-top: 8px;
+      border: none;
+      padding: 10px 0;
+      border-radius: 999px;
+      font-weight: 700;
+      background: linear-gradient(180deg, #2563eb, #1d4ed8);
+      color: white;
+      cursor: pointer;
+    }
+    .login-box button.primary:hover {
+      opacity: 0.9;
+    }
+    .message {
+      font-size: 13px;
+      color: var(--muted);
+      min-height: 18px;
+    }
+    .message.error {
+      color: #f97373;
+    }
+    .message.success {
+      color: #4ade80;
+    }
+    footer {
+      margin-top: 16px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div>
+      <div class="login-box">
+        <h2>Psikolojik Test Sistemi</h2>
+        <p style="margin:0 0 8px; font-size:14px; color:var(--muted);">
+          Lütfen giriş yapın veya yeni kullanıcı oluşturun.
+        </p>
+
+        <div class="tabs">
+          <button id="tab-login" class="active" type="button">Giriş</button>
+          <button id="tab-register" type="button">Kayıt Ol</button>
+        </div>
+
+        <div id="loginForm">
+          <input type="text" id="login-username" placeholder="Kullanıcı adı" />
+          <input type="password" id="login-password" placeholder="Şifre" />
+          <button class="primary" type="button" onclick="login()">Giriş Yap</button>
+        </div>
+
+        <div id="registerForm" style="display:none;">
+          <input type="text" id="reg-username" placeholder="Kullanıcı adı" />
+          <input type="password" id="reg-password" placeholder="Şifre" />
+          <input type="password" id="reg-password2" placeholder="Şifre (tekrar)" />
+          <button class="primary" type="button" onclick="registerUser()">Kayıt Ol</button>
+        </div>
+
+        <div id="auth-message" class="message"></div>
+      </div>
+
+      <footer>
+        © <span id="year"></span> Şekiller Testi Sistemi
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = 'http://localhost:4000';
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    const tabLogin = document.getElementById('tab-login');
+    const tabRegister = document.getElementById('tab-register');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const msgEl = document.getElementById('auth-message');
+
+    function showMessage(text, type = 'normal') {
+      msgEl.textContent = text || '';
+      msgEl.className = 'message' + (type === 'error' ? ' error' : type === 'success' ? ' success' : '');
+    }
+
+    function switchTab(tab) {
+      if (tab === 'login') {
+        tabLogin.classList.add('active');
+        tabRegister.classList.remove('active');
+        loginForm.style.display = 'block';
+        registerForm.style.display = 'none';
+        showMessage('');
+      } else {
+        tabLogin.classList.remove('active');
+        tabRegister.classList.add('active');
+        loginForm.style.display = 'none';
+        registerForm.style.display = 'block';
+        showMessage('');
+      }
+    }
+
+    tabLogin.addEventListener('click', () => switchTab('login'));
+    tabRegister.addEventListener('click', () => switchTab('register'));
+
+    async function login() {
+      const username = document.getElementById('login-username').value.trim();
+      const password = document.getElementById('login-password').value.trim();
+
+      if (!username || !password) {
+        showMessage('Kullanıcı adı ve şifre zorunlu.', 'error');
+        return;
+      }
+
+      try {
+        const res = await fetch(API_BASE + '/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          showMessage(err.error || 'Giriş başarısız.', 'error');
+          return;
+        }
+
+        const user = await res.json();
+        localStorage.setItem('currentUser', JSON.stringify(user));
+
+        showMessage('Giriş başarılı, yönlendiriliyorsunuz...', 'success');
+
+        if (user.role === 'admin') {
+          window.location.href = './admin/dashboard.html';
+        } else {
+          window.location.href = './test1.html';
+        }
+      } catch (err) {
+        console.error('Login hatası:', err);
+        showMessage('Sunucuya bağlanırken hata oluştu.', 'error');
+      }
+    }
+
+    async function registerUser() {
+      const username = document.getElementById('reg-username').value.trim();
+      const password = document.getElementById('reg-password').value.trim();
+      const password2 = document.getElementById('reg-password2').value.trim();
+
+      if (!username || !password || !password2) {
+        showMessage('Tüm alanlar zorunlu.', 'error');
+        return;
+      }
+      if (password !== password2) {
+        showMessage('Şifreler uyuşmuyor.', 'error');
+        return;
+      }
+
+      try {
+        const res = await fetch(API_BASE + '/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          showMessage(err.error || 'Kayıt başarısız.', 'error');
+          return;
+        }
+
+        showMessage('Kayıt başarılı! Şimdi giriş yapabilirsiniz.', 'success');
+        switchTab('login');
+        document.getElementById('login-username').value = username;
+        document.getElementById('login-password').value = '';
+      } catch (err) {
+        console.error('Register hatası:', err);
+        showMessage('Sunucuya bağlanırken hata oluştu.', 'error');
+      }
+    }
+  </script>
+</body>
+</html>

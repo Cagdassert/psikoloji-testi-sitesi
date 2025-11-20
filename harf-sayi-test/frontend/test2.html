@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Çift Görev Tepki Testi</title>
+  <style>
+    :root{
+      --bg:#0f172a; --panel:#0b1220; --muted:#94a3b8; --text:#e5e7eb;
+      --green:#10b981; --red:#ef4444; --amber:#f59e0b; --blue:#3b82f6;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background:radial-gradient(1200px 800px at 50% -20%,#1f2937 0%,var(--bg) 60%);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Arial,sans-serif;
+      display:grid;place-items:center
+    }
+    .app{width:min(100%,1000px);background:linear-gradient(180deg,#0b1220,#0b1220ee);
+      border:1px solid #1f2937;border-radius:18px;padding:20px;box-shadow:0 10px 40px rgba(0,0,0,.35)}
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    .title{font-weight:800}
+    .badges{display:flex;gap:12px;flex-wrap:wrap}
+    .badge{background:#0a0f1c;border:1px solid #1f2937;border-radius:12px;padding:8px 12px;font-variant-numeric:tabular-nums}
+
+    .stage{position:relative;margin-top:16px;border:1px solid #1f2937;border-radius:16px;
+      padding:18px;background:var(--panel);min-height:520px;overflow:hidden}
+    .instruction{background:#0a0f1c;border:1px dashed #21314f;border-radius:14px;padding:12px 14px;color:#d1d5db;line-height:1.45}
+
+    .arena{position:relative;height:360px;border:1px solid #16243b;border-radius:12px;background:linear-gradient(180deg,#0b1324,#0a0f1c)}
+    .animalWrap{position:absolute;inset:0;display:grid;place-items:center}
+    .animal{font-size:140px;filter:drop-shadow(0 10px 30px rgba(0,0,0,.55));user-select:none}
+    .nameTag{position:absolute;top:18%;left:50%;transform:translate(-50%,-50%);
+      background:#fde68a;color:#111827;border-radius:10px;padding:6px 12px;border:1px solid #d97706;
+      font-weight:800;letter-spacing:.3px}
+
+    .controls{display:flex;justify-content:center;align-items:center;gap:12px;margin-top:12px}
+    .btn{border:none;border-radius:12px;padding:10px 14px;font-weight:800;color:white;
+      background:linear-gradient(180deg,#374151,#1f2937);border:1px solid #374151;cursor:pointer}
+    .btn:disabled{opacity:.45;cursor:not-allowed}
+    .btn-start{background:linear-gradient(180deg,#2563eb,#1d4ed8);border-color:#1d4ed8}
+
+    .scoreline{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;font-variant-numeric:tabular-nums}
+
+    .log{margin-top:14px;max-height:170px;overflow:auto;background:#0a0f1c;border:1px solid #1f2937;border-radius:12px}
+    .log table{width:100%;border-collapse:collapse}
+    .log th,.log td{padding:8px 10px;border-bottom:1px solid #1f2937;text-align:left;white-space:nowrap}
+
+    .circle{position:absolute;width:44px;height:44px;border-radius:999px;
+      background:radial-gradient(circle at 30% 30%,#7dd3fc,#0284c7);
+      box-shadow:0 0 0 3px rgba(255,255,255,.12),0 8px 22px rgba(2,132,199,.4);
+      cursor:pointer;animation:pop .08s ease-out}
+    .circle:active{transform:scale(.96)}
+    @keyframes pop{from{transform:scale(.6);opacity:.6}to{transform:scale(1);opacity:1}}
+
+    footer{margin-top:10px;color:var(--muted);font-size:12px;text-align:center}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="title">Çift Görev Tepki Testi</div>
+      <div class="badges">
+        <div class="badge">Süre: <span id="timeLeft">60</span> sn</div>
+        <div class="badge">Puan: <span id="score">0</span></div>
+        <div class="badge">Doğru: <span id="hits">0</span></div>
+        <div class="badge">Kaçırma: <span id="misses">0</span></div>
+        <div class="badge">Hatalı Basış: <span id="falseAlarms">0</span></div>
+        <div class="badge">Daire Tıklama: <span id="circleHits">0</span></div>
+        <div class="badge">Daire Kaçırma: <span id="circleMisses">0</span></div>
+      </div>
+    </header>
+
+    <section class="stage">
+      <div class="instruction" id="inst">
+        <strong>Talimatlar :</strong>
+        <ol>
+          <li>Ortada bir <strong>hayvan görseli</strong> ve üstünde hayvan adı gösterilecektir.</li>
+          <li><strong>Ad doğruysa</strong> <kbd>Space</kbd> tuşuna basınız, yanlışsa basmayınız.</li>
+          <li><u>Daire, hayvanla aynı anda çıkar</u> ve <u>hayvan değişmeden biraz önce</u> kaybolur; görünürken tıklayınız.</li>
+        </ol>
+        <p><strong>Puanlama (merkez görev):</strong> Doğru uyaran + Space = <strong>+15</strong>; Yanlış zamanda Space = <strong>-10</strong>; Doğru uyaranı kaçırma = <strong>-5</strong>.</p>
+        <p><strong>İkincil görev (daireler):</strong> Daireye tıklama = <strong>+10</strong>; Daire kaybolursa = <strong>-5</strong>.</p>
+        <p>Toplam süre <strong>60 saniyedir</strong>.</p>
+      </div>
+
+      <div class="arena" id="arena">
+        <div class="animalWrap">
+          <div id="nameTag" class="nameTag">—</div>
+          <div id="animal" class="animal" aria-live="polite">🐾</div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button id="startBtn" class="btn btn-start">Başlat</button>
+      </div>
+
+      <div class="scoreline">
+        <div>Uyarıcılar: <span id="totalStim">0</span></div>
+        <div>Not: Space = merkez görev, fare = daire tıklama.</div>
+      </div>
+
+      <div class="log" aria-label="Olay günlüğü">
+        <table>
+          <thead>
+            <tr><th>Zaman</th><th>Hayvan</th><th>Etiket</th><th>Eşleşme</th><th>Yanıt</th><th>Puan</th></tr>
+          </thead>
+          <tbody id="logBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <footer>© <span id="year"></span> Çift Görev Testi</footer>
+  </div>
+
+  <script>
+    const $ = s=>document.querySelector(s);
+    const timeLeftEl = $('#timeLeft');
+    const scoreEl = $('#score');
+    const hitsEl = $('#hits');
+    const missesEl = $('#misses');
+    const falseEl = $('#falseAlarms');
+    const circleHitsEl = $('#circleHits');
+    const circleMissesEl = $('#circleMisses');
+    const totalStimEl = $('#totalStim');
+    const logBody = $('#logBody');
+    const animalEl = $('#animal');
+    const nameTagEl = $('#nameTag');
+    const startBtn = $('#startBtn');
+    const arena = $('#arena');
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+   
+    let running=false, timerId=null, stimTimerId=null;
+    let timeLeft=60, score=0, hits=0, misses=0, falseAlarms=0, circleHits=0, circleMisses=0, totalStim=0;
+    let current={ emoji:'', name:'', shownName:'', isMatch:false, responded:false };
+
+  
+    const STIM_INTERVAL = 2300;          
+    const RESPONSE_WINDOW = 1100;        
+    const CIRCLE_EARLY_OFF = 300;       
+    const MATCH_PROB = 0.6;
+
+    const ANIMALS = [
+      {name:'örümcek', emoji:'🕷️'}, {name:'deve', emoji:'🐫'}, {name:'kuş', emoji:'🐦'},
+      {name:'koç', emoji:'🐏'}, {name:'at', emoji:'🐴'}, {name:'kaplan', emoji:'🐯'},
+      {name:'fil', emoji:'🐘'}, {name:'balık', emoji:'🐟'}, {name:'yılan', emoji:'🐍'},
+      {name:'zebra', emoji:'🦓'}, {name:'ayı', emoji:'🐻'}, {name:'zürafa', emoji:'🦒'},
+      {name:'fare', emoji:'🐭'}, {name:'arı', emoji:'🐝'}, {name:'tavuk', emoji:'🐔'}
+    ];
+    const pick = arr => arr[Math.floor(Math.random()*arr.length)];
+
+    function updateStats(){
+      timeLeftEl.textContent = timeLeft;
+      scoreEl.textContent = score;
+      hitsEl.textContent = hits;
+      missesEl.textContent = misses;
+      falseEl.textContent = falseAlarms;
+      circleHitsEl.textContent = circleHits;
+      circleMissesEl.textContent = circleMisses;
+      totalStimEl.textContent = totalStim;
+    }
+
+    function logRow({animal,label,match,resp,delta}){
+      const tr=document.createElement('tr');
+      const t=new Date().toLocaleTimeString('tr-TR',{hour12:false});
+      tr.innerHTML = `<td>${t}</td><td style="font-weight:700">${animal}</td><td>${label}</td><td>${match}</td><td>${resp}</td><td>${delta>0?'+':''}${delta}</td>`;
+      logBody.prepend(tr);
+    }
+
+    
+    function spawnCircleAligned(){
+      const rect = arena.getBoundingClientRect();
+      const pad = 20; const size = 44;
+      const x = Math.random()*(rect.width-2*pad-size)+pad;
+      const y = Math.random()*(rect.height-2*pad-size)+pad;
+
+      const d = document.createElement('div');
+      d.className='circle';
+      d.style.left = x+'px';
+      d.style.top  = y+'px';
+
+      let clicked = false;
+      d.addEventListener('click', ()=>{
+        if(clicked) return;
+        clicked = true;
+        circleHits++;
+        score += 10;
+        updateStats();
+        d.remove();
+      });
+
+      arena.appendChild(d);
+
+      const lifetime = Math.max(200, STIM_INTERVAL - CIRCLE_EARLY_OFF);
+      setTimeout(()=>{
+        if(!clicked){
+          circleMisses++;
+          score -= 5;
+          updateStats();
+        }
+        d.remove();
+      }, lifetime);
+    }
+
+    function nextStimulus(){
+      if(!running) return;
+
+      
+      if(current.name && current.isMatch && !current.responded){
+        score += -5; misses++; updateStats();
+        logRow({animal:current.name, label:current.shownName, match:'evet', resp:'yanıtsız', delta:-5});
+      }
+
+      const a = pick(ANIMALS);
+      let shownName = a.name;
+      let isMatch = Math.random() < MATCH_PROB;
+      if(!isMatch){
+        let other;
+        do { other = pick(ANIMALS).name; } while(other === a.name);
+        shownName = other;
+      }
+
+      current = { emoji:a.emoji, name:a.name, shownName, isMatch, responded:false };
+      animalEl.textContent = a.emoji;
+      nameTagEl.textContent = shownName;
+      totalStim++; updateStats();
+
+      spawnCircleAligned();
+
+      stimTimerId = setTimeout(nextStimulus, STIM_INTERVAL);
+    }
+
+    function handleSpace(){
+      if(!running) return;
+      if(current.responded) return;
+      current.responded = true;
+
+      let delta = 0;
+      if(current.isMatch){ delta = +15; hits++; }
+      else { delta = -10; falseAlarms++; }
+      score += delta; updateStats();
+      logRow({animal:current.name, label:current.shownName, match: current.isMatch?'evet':'hayır', resp:'space', delta});
+    }
+
+    function start(){
+      if(running) return; running=true;
+      timeLeft=60; score=0; hits=0; misses=0; falseAlarms=0; circleHits=0; circleMisses=0; totalStim=0;
+      logBody.innerHTML=''; $('#inst').style.display='none';
+      updateStats(); startBtn.disabled=true;
+
+      timerId = setInterval(()=>{
+        timeLeft--; updateStats();
+        if(timeLeft<=0) stop();
+      },1000);
+
+      nextStimulus();
+    }
+function stop(){
+  running=false; 
+  startBtn.disabled=false; 
+  $('#inst').style.display='';
+
+  clearInterval(timerId); 
+  clearTimeout(stimTimerId);
+
+  animalEl.textContent='✅'; 
+  nameTagEl.textContent='Bitti';
+
+  if(current.name && current.isMatch && !current.responded){
+    score += -5; 
+    misses++; 
+    updateStats();
+    logRow({
+      animal: current.name,
+      label: current.shownName,
+      match: 'evet',
+      resp: 'yanıtsız',
+      delta: -5
+    });
+  }
+
+  const s=document.createElement('tr');
+  s.innerHTML = `<td colspan="6" style="text-align:center;color:#93c5fd;font-weight:800">
+    Süre bitti • Puan: ${score} • Doğru: ${hits} • Kaçırma: ${misses} • Hatalı: ${falseAlarms}
+    • Daire Tıklama: ${circleHits} • Daire Kaçırma: ${circleMisses}
+  </td>`;
+  logBody.prepend(s);
+
+
+  const result = {
+    score,
+    hits,
+    misses,
+    falseAlarms,
+    circleHits,
+    circleMisses,
+    totalStim,
+    timestamp: new Date().toISOString()
+  };
+  localStorage.setItem('test2Result', JSON.stringify(result));
+
+  if (window.TestApi) {
+    TestApi.saveTestResult('test2', {
+      score,
+      hits,
+      misses,
+      falseAlarms,
+      circleHits,
+      circleMisses,
+      totalStim
+    }).then(() => {
+      console.log('✅ Test2 sonuçları kaydedildi');
+    }).catch(err => {
+      console.warn('⚠️ Backend kayıt hatası:', err);
+    });
+  }
+
+  setTimeout(()=>{ 
+    window.location.href='test3.html'; 
+  }, 2000);
+}
+
+    startBtn.addEventListener('click', start);
+    window.addEventListener('keydown', e=>{
+      if(e.code==='Space'){ e.preventDefault(); handleSpace(); }
+    });
+  </script>
+  <script src="api.js"></script>
+</body>
+</html>

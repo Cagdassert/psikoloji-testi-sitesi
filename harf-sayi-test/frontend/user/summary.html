@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Test Sonuç Özeti</title>
+  <link rel="stylesheet" href="../common.css" />
+  <style>
+    .summary-box {
+      background: var(--panel);
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.4);
+      width: 100%;
+      max-width: 1000px;
+      display: grid;
+      gap: 24px;
+      margin: 0 auto;
+    }
+    h2 {
+      margin: 0;
+      font-weight: 700;
+      font-size: 22px;
+      color: var(--text);
+    }
+    .result {
+      background: #0a0f1c;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .result h3 {
+      margin-top: 0;
+    }
+    .result ul {
+      margin: 0;
+      padding-left: 18px;
+    }
+    .result li {
+      margin-bottom: 6px;
+    }
+    .table-wrapper {
+      background: #0a0f1c;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      overflow-x: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      color: white;
+      font-size: 14px;
+    }
+    table th,
+    table td {
+      border: 1px solid #1f2937;
+      padding: 6px 8px;
+      text-align: left;
+      white-space: nowrap;
+    }
+    table thead {
+      background: #020617;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="summary-box">
+      <h2>📝 Test Sonuç Özeti</h2>
+
+      <div class="result">
+        <h3>Harf/Sayı Tepki Testi (Son Çalıştırma)</h3>
+        <div id="test1">Yükleniyor...</div>
+      </div>
+
+      <div class="result">
+        <h3>Çift Görev Tepki Testi (Son Çalıştırma)</h3>
+        <div id="test2">Yükleniyor...</div>
+      </div>
+
+      <div class="result">
+        <h3>Şekiller Sıralama Testi (Son Çalıştırma)</h3>
+        <div id="test3">Yükleniyor...</div>
+      </div>
+
+      <div class="table-wrapper">
+        <h3>📊 Sunucudaki Tüm Sonuçlarım</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Test</th>
+              <th>Puan</th>
+              <th>Tarih</th>
+              <th>Detay (Doğru / Kaçırma / Hatalı)</th>
+            </tr>
+          </thead>
+          <tbody id="results-body">
+          </tbody>
+        </table>
+      </div>
+
+      <footer style="margin-top:10px; text-align:center; color:var(--muted); font-size:13px;">
+        © <span id="year"></span> Şekiller Testi Sistemi
+      </footer>
+    </div>
+  </div>
+
+  <script src="../api.js"></script>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    function formatTestName(raw) {
+      switch (raw) {
+        case 'test1':
+          return 'Harf/Sayı Tepki Testi';
+        case 'test2':
+          return 'Çift Görev Tepki Testi';
+        case 'test3':
+          return 'Şekiller Sıralama Testi';
+        default:
+          return raw || '-';
+      }
+    }
+    function showResult(key, targetId) {
+      const data = JSON.parse(localStorage.getItem(key));
+      const target = document.getElementById(targetId);
+
+      if (data) {
+        target.innerHTML = `
+          <ul>
+            <li>Puan: ${data.score}</li>
+            ${data.hits !== undefined ? `<li>Doğru: ${data.hits}</li>` : ''}
+            ${data.misses !== undefined ? `<li>Kaçırma: ${data.misses}</li>` : ''}
+            ${data.falseAlarms !== undefined ? `<li>Hatalı Tıklama: ${data.falseAlarms}</li>` : ''}
+            ${data.circleHits !== undefined ? `<li>Daire Tıklama: ${data.circleHits}</li>` : ''}
+            ${data.circleMisses !== undefined ? `<li>Daire Kaçırma: ${data.circleMisses}</li>` : ''}
+            ${data.correct !== undefined ? `<li>Doğru Tıklama: ${data.correct}</li>` : ''}
+            ${data.wrong !== undefined ? `<li>Yanlış Tıklama: ${data.wrong}</li>` : ''}
+            ${data.totalStim !== undefined ? `<li>Toplam Uyarıcı: ${data.totalStim}</li>` : ''}
+            <li>Tarih: ${new Date(data.timestamp).toLocaleString('tr-TR')}</li>
+          </ul>
+        `;
+      } else {
+        target.textContent = 'Henüz sonuç yok.';
+      }
+    }
+    async function loadResults() {
+      const tbody = document.getElementById('results-body');
+      tbody.innerHTML = '<tr><td colspan="5">Yükleniyor...</td></tr>';
+
+      const results = await TestApi.getMyResults();
+
+      if (!results.length) {
+        tbody.innerHTML = '<tr><td colspan="5">Kayıtlı test sonucu yok.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = '';
+      for (const r of results) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${r.id}</td>
+          <td>${formatTestName(r.test_name)}</td>
+          <td>${r.score}</td>
+          <td>${r.created_at.replace('T',' ').slice(0,19)}</td>
+          <td>${r.hits ?? '-'} / ${r.misses ?? '-'} / ${r.false_alarms ?? '-'}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      showResult('test1Result', 'test1');
+      showResult('test2Result', 'test2');
+      showResult('test3Result', 'test3');
+      loadResults();
+    });
+  </script>
+</body>
+</html>
