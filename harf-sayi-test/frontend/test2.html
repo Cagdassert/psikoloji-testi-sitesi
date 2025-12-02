@@ -5,84 +5,517 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Çift Görev Tepki Testi</title>
   <style>
-    :root{
-      --bg:#0f172a; --panel:#0b1220; --muted:#94a3b8; --text:#e5e7eb;
-      --green:#10b981; --red:#ef4444; --amber:#f59e0b; --blue:#3b82f6;
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      background:radial-gradient(1200px 800px at 50% -20%,#1f2937 0%,var(--bg) 60%);
-      color:var(--text);
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Arial,sans-serif;
-      display:grid;place-items:center
+
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --primary-light: #818cf8;
+      --bg-main: #0f172a;
+      --bg-secondary: #1e293b;
+      --bg-card: #1e293b;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --error: #ef4444;
+      --cyan: #06b6d4;
+      --amber: #f59e0b;
     }
-    .app{width:min(100%,1000px);background:linear-gradient(180deg,#0b1220,#0b1220ee);
-      border:1px solid #1f2937;border-radius:18px;padding:20px;box-shadow:0 10px 40px rgba(0,0,0,.35)}
-    header{display:flex;align-items:center;justify-content:space-between;gap:12px}
-    .title{font-weight:800}
-    .badges{display:flex;gap:12px;flex-wrap:wrap}
-    .badge{background:#0a0f1c;border:1px solid #1f2937;border-radius:12px;padding:8px 12px;font-variant-numeric:tabular-nums}
 
-    .stage{position:relative;margin-top:16px;border:1px solid #1f2937;border-radius:16px;
-      padding:18px;background:var(--panel);min-height:520px;overflow:hidden}
-    .instruction{background:#0a0f1c;border:1px dashed #21314f;border-radius:14px;padding:12px 14px;color:#d1d5db;line-height:1.45}
+    html, body {
+      height: 100%;
+    }
 
-    .arena{position:relative;height:360px;border:1px solid #16243b;border-radius:12px;background:linear-gradient(180deg,#0b1324,#0a0f1c)}
-    .animalWrap{position:absolute;inset:0;display:grid;place-items:center}
-    .animal{font-size:140px;filter:drop-shadow(0 10px 30px rgba(0,0,0,.55));user-select:none}
-    .nameTag{position:absolute;top:18%;left:50%;transform:translate(-50%,-50%);
-      background:#fde68a;color:#111827;border-radius:10px;padding:6px 12px;border:1px solid #d97706;
-      font-weight:800;letter-spacing:.3px}
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
 
-    .controls{display:flex;justify-content:center;align-items:center;gap:12px;margin-top:12px}
-    .btn{border:none;border-radius:12px;padding:10px 14px;font-weight:800;color:white;
-      background:linear-gradient(180deg,#374151,#1f2937);border:1px solid #374151;cursor:pointer}
-    .btn:disabled{opacity:.45;cursor:not-allowed}
-    .btn-start{background:linear-gradient(180deg,#2563eb,#1d4ed8);border-color:#1d4ed8}
+    body::before {
+      content: '';
+      position: fixed;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.25), transparent);
+      border-radius: 50%;
+      top: -250px;
+      right: -250px;
+      animation: pulse 8s ease-in-out infinite;
+      pointer-events: none;
+    }
 
-    .scoreline{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;font-variant-numeric:tabular-nums}
+    body::after {
+      content: '';
+      position: fixed;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.2), transparent);
+      border-radius: 50%;
+      bottom: -200px;
+      left: -200px;
+      animation: pulse 10s ease-in-out infinite reverse;
+      pointer-events: none;
+    }
 
-    .log{margin-top:14px;max-height:170px;overflow:auto;background:#0a0f1c;border:1px solid #1f2937;border-radius:12px}
-    .log table{width:100%;border-collapse:collapse}
-    .log th,.log td{padding:8px 10px;border-bottom:1px solid #1f2937;text-align:left;white-space:nowrap}
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.5; }
+      50% { transform: scale(1.15); opacity: 0.8; }
+    }
 
-    .circle{position:absolute;width:44px;height:44px;border-radius:999px;
-      background:radial-gradient(circle at 30% 30%,#7dd3fc,#0284c7);
-      box-shadow:0 0 0 3px rgba(255,255,255,.12),0 8px 22px rgba(2,132,199,.4);
-      cursor:pointer;animation:pop .08s ease-out}
-    .circle:active{transform:scale(.96)}
-    @keyframes pop{from{transform:scale(.6);opacity:.6}to{transform:scale(1);opacity:1}}
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
 
-    footer{margin-top:10px;color:var(--muted);font-size:12px;text-align:center}
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes pop {
+      from { transform: scale(0.6); opacity: 0.6; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes animalGlow {
+      0%, 100% {
+        filter: drop-shadow(0 10px 30px rgba(99, 102, 241, 0.4));
+      }
+      50% {
+        filter: drop-shadow(0 15px 40px rgba(99, 102, 241, 0.6));
+      }
+    }
+
+    .app {
+      width: 100%;
+      max-width: 1200px;
+      background: rgba(30, 41, 59, 0.95);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      padding: 40px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      position: relative;
+      z-index: 1;
+      animation: slideUp 0.6s ease-out;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .logo {
+      width: 56px;
+      height: 56px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+    }
+
+    .title {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    .badges {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-variant-numeric: tabular-nums;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge-value {
+      color: var(--primary-light);
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    /* Stage */
+    .stage {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 32px;
+      min-height: 650px;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .instruction {
+      background: rgba(99, 102, 241, 0.05);
+      border: 2px dashed rgba(99, 102, 241, 0.3);
+      border-radius: 16px;
+      padding: 20px 24px;
+      color: var(--text);
+      line-height: 1.7;
+      animation: fadeIn 0.8s ease;
+    }
+
+    .instruction strong {
+      color: var(--primary-light);
+    }
+
+    .instruction ol {
+      margin: 12px 0;
+      padding-left: 24px;
+    }
+
+    .instruction li {
+      margin: 8px 0;
+    }
+
+    .instruction kbd {
+      background: rgba(99, 102, 241, 0.2);
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-weight: 700;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+
+    /* Arena */
+    .arena {
+      position: relative;
+      height: 400px;
+      background: linear-gradient(180deg, rgba(15, 23, 42, 0.9), rgba(10, 15, 28, 0.95));
+      border-radius: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.05);
+      overflow: hidden;
+    }
+
+    .animalWrap {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+    }
+
+    .animal {
+      font-size: 180px;
+      user-select: none;
+      animation: animalGlow 2s ease-in-out infinite;
+      transition: transform 0.3s ease;
+    }
+
+    .nameTag {
+      position: absolute;
+      top: 15%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: linear-gradient(135deg, #fbbf24, #f59e0b);
+      color: #111827;
+      border-radius: 12px;
+      padding: 10px 20px;
+      border: 2px solid #d97706;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      font-size: 18px;
+      box-shadow: 0 8px 20px rgba(245, 158, 11, 0.4);
+    }
+
+    /* Circle */
+    .circle {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, #7dd3fc, #0284c7);
+      box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.15),
+                  0 10px 30px rgba(2, 132, 199, 0.5);
+      cursor: pointer;
+      animation: pop 0.15s ease-out;
+      transition: transform 0.1s ease;
+      z-index: 10;
+    }
+
+    .circle:hover {
+      transform: scale(1.1);
+    }
+
+    .circle:active {
+      transform: scale(0.95);
+    }
+
+    /* Controls */
+    .controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 12px;
+      padding: 14px 28px;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      color: white;
+      transition: all 0.3s ease;
+      border: 2px solid transparent;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .btn:hover::before {
+      opacity: 1;
+    }
+
+    .btn:active {
+      transform: translateY(2px) scale(0.98);
+    }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .btn-start {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+    }
+
+    .btn-start:hover:not(:disabled) {
+      box-shadow: 0 12px 28px rgba(99, 102, 241, 0.4);
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: rgba(30, 41, 59, 0.8);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      color: var(--text);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+
+    /* Scoreline */
+    .scoreline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 20px;
+      background: rgba(99, 102, 241, 0.05);
+      border-radius: 12px;
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      font-size: 13px;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+    }
+
+    .scoreline span {
+      color: var(--primary-light);
+      font-weight: 700;
+    }
+
+    /* Log */
+    .log {
+      max-height: 280px;
+      overflow-y: auto;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--primary) rgba(255, 255, 255, 0.1);
+    }
+
+    .log::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .log::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 4px;
+    }
+
+    .log::-webkit-scrollbar-thumb {
+      background: var(--primary);
+      border-radius: 4px;
+    }
+
+    .log table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .log th,
+    .log td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-size: 14px;
+    }
+
+    .log th {
+      background: rgba(99, 102, 241, 0.1);
+      color: var(--primary-light);
+      font-weight: 700;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .log td {
+      color: var(--text);
+    }
+
+    .log tr:last-child td {
+      border-bottom: none;
+    }
+
+    .log tr:hover {
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    /* Footer */
+    footer {
+      margin-top: 20px;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    @media (max-width: 768px) {
+      .app {
+        padding: 20px;
+      }
+
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .badges {
+        width: 100%;
+      }
+
+      .badge {
+        flex: 1;
+        min-width: 100px;
+        justify-content: center;
+      }
+
+      .animal {
+        font-size: 120px;
+      }
+
+      .arena {
+        height: 300px;
+      }
+
+      .scoreline {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="app">
     <header>
-      <div class="title">Çift Görev Tepki Testi</div>
+      <div class="header-left">
+        <div class="logo">🎯</div>
+        <div class="title">Çift Görev Tepki Testi</div>
+      </div>
       <div class="badges">
-        <div class="badge">Süre: <span id="timeLeft">60</span> sn</div>
-        <div class="badge">Puan: <span id="score">0</span></div>
-        <div class="badge">Doğru: <span id="hits">0</span></div>
-        <div class="badge">Kaçırma: <span id="misses">0</span></div>
-        <div class="badge">Hatalı Basış: <span id="falseAlarms">0</span></div>
-        <div class="badge">Daire Tıklama: <span id="circleHits">0</span></div>
-        <div class="badge">Daire Kaçırma: <span id="circleMisses">0</span></div>
+        <div class="badge">
+          ⏱️ <span class="badge-value" id="timeLeft">60</span> sn
+        </div>
+        <div class="badge">
+          🎯 <span class="badge-value" id="score">0</span>
+        </div>
+        <div class="badge">
+          ✅ Doğru: <span class="badge-value" id="hits">0</span>
+        </div>
+        <div class="badge">
+          ⭕ Kaçırma: <span class="badge-value" id="misses">0</span>
+        </div>
+        <div class="badge">
+          ❌ Hatalı: <span class="badge-value" id="falseAlarms">0</span>
+        </div>
+        <div class="badge">
+          🔵 Daire: <span class="badge-value" id="circleHits">0</span>
+        </div>
+        <div class="badge">
+          ⚪ Kaçan: <span class="badge-value" id="circleMisses">0</span>
+        </div>
       </div>
     </header>
 
     <section class="stage">
       <div class="instruction" id="inst">
-        <strong>Talimatlar :</strong>
+        <strong>📋 Talimatlar</strong>
         <ol>
           <li>Ortada bir <strong>hayvan görseli</strong> ve üstünde hayvan adı gösterilecektir.</li>
           <li><strong>Ad doğruysa</strong> <kbd>Space</kbd> tuşuna basınız, yanlışsa basmayınız.</li>
-          <li><u>Daire, hayvanla aynı anda çıkar</u> ve <u>hayvan değişmeden biraz önce</u> kaybolur; görünürken tıklayınız.</li>
+          <li><u>Mavi daireler</u> rastgele ekranda belirecek, görünürken <strong>tıklayınız</strong>.</li>
         </ol>
-        <p><strong>Puanlama (merkez görev):</strong> Doğru uyaran + Space = <strong>+15</strong>; Yanlış zamanda Space = <strong>-10</strong>; Doğru uyaranı kaçırma = <strong>-5</strong>.</p>
-        <p><strong>İkincil görev (daireler):</strong> Daireye tıklama = <strong>+10</strong>; Daire kaybolursa = <strong>-5</strong>.</p>
+        <p><strong>Puanlama (merkez görev):</strong> Doğru + Space = <strong>+5</strong> • Yanlış + Space = <strong>-5</strong> • Doğru kaçırma = <strong>0</strong> • Yanlış yanıtsız = <strong>+5</strong></p>
+        <p><strong>İkincil görev (daireler):</strong> Daireye tıklama = <strong>+5</strong> • Daire kaybolursa = <strong>0</strong></p>
         <p>Toplam süre <strong>60 saniyedir</strong>.</p>
       </div>
 
@@ -94,29 +527,37 @@
       </div>
 
       <div class="controls">
-        <button id="startBtn" class="btn btn-start">Başlat</button>
+        <button id="startBtn" class="btn btn-start">▶️ Başlat</button>
+        <button id="nextTestBtn" class="btn btn-secondary" style="display:none;">➡️ Sonraki Test</button>
       </div>
 
       <div class="scoreline">
-        <div>Uyarıcılar: <span id="totalStim">0</span></div>
-        <div>Not: Space = merkez görev, fare = daire tıklama.</div>
+        <div>📍 Toplam Uyarıcı: <span id="totalStim">0</span></div>
+        <div>💡 Not: <kbd>Space</kbd> = merkez görev • Fare tıklama = daire yakalama</div>
       </div>
 
       <div class="log" aria-label="Olay günlüğü">
         <table>
           <thead>
-            <tr><th>Zaman</th><th>Hayvan</th><th>Etiket</th><th>Eşleşme</th><th>Yanıt</th><th>Puan</th></tr>
+            <tr>
+              <th>⏰ Zaman</th>
+              <th>🐾 Hayvan</th>
+              <th>🏷️ Etiket</th>
+              <th>✓ Eşleşme</th>
+              <th>👆 Yanıt</th>
+              <th>💯 Puan</th>
+            </tr>
           </thead>
           <tbody id="logBody"></tbody>
         </table>
       </div>
     </section>
 
-    <footer>© <span id="year"></span> Çift Görev Testi</footer>
+    <footer>© <span id="year"></span> Çift Görev Testi • Psikolojik Test Sistemi</footer>
   </div>
 
   <script>
-    const $ = s=>document.querySelector(s);
+    const $ = s => document.querySelector(s);
     const timeLeftEl = $('#timeLeft');
     const scoreEl = $('#score');
     const hitsEl = $('#hits');
@@ -129,30 +570,29 @@
     const animalEl = $('#animal');
     const nameTagEl = $('#nameTag');
     const startBtn = $('#startBtn');
+    const nextTestBtn = $('#nextTestBtn');
     const arena = $('#arena');
     document.getElementById('year').textContent = new Date().getFullYear();
 
-   
-    let running=false, timerId=null, stimTimerId=null;
-    let timeLeft=60, score=0, hits=0, misses=0, falseAlarms=0, circleHits=0, circleMisses=0, totalStim=0;
-    let current={ emoji:'', name:'', shownName:'', isMatch:false, responded:false };
+    let running = false, timerId = null, stimTimerId = null;
+    let timeLeft = 60, score = 0, hits = 0, misses = 0, falseAlarms = 0, circleHits = 0, circleMisses = 0, totalStim = 0;
+    let current = { emoji: '', name: '', shownName: '', isMatch: false, responded: false };
 
-  
-    const STIM_INTERVAL = 2300;          
-    const RESPONSE_WINDOW = 1100;        
-    const CIRCLE_EARLY_OFF = 300;       
+    const STIM_INTERVAL = 2300;
+    const RESPONSE_WINDOW = 1100;
+    const CIRCLE_EARLY_OFF = 300;
     const MATCH_PROB = 0.6;
 
     const ANIMALS = [
-      {name:'örümcek', emoji:'🕷️'}, {name:'deve', emoji:'🐫'}, {name:'kuş', emoji:'🐦'},
-      {name:'koç', emoji:'🐏'}, {name:'at', emoji:'🐴'}, {name:'kaplan', emoji:'🐯'},
-      {name:'fil', emoji:'🐘'}, {name:'balık', emoji:'🐟'}, {name:'yılan', emoji:'🐍'},
-      {name:'zebra', emoji:'🦓'}, {name:'ayı', emoji:'🐻'}, {name:'zürafa', emoji:'🦒'},
-      {name:'fare', emoji:'🐭'}, {name:'arı', emoji:'🐝'}, {name:'tavuk', emoji:'🐔'}
+      { name: 'örümcek', emoji: '🕷️' }, { name: 'deve', emoji: '🐫' }, { name: 'kuş', emoji: '🐦' },
+      { name: 'koç', emoji: '🐏' }, { name: 'at', emoji: '🐴' }, { name: 'kaplan', emoji: '🐯' },
+      { name: 'fil', emoji: '🐘' }, { name: 'balık', emoji: '🐟' }, { name: 'yılan', emoji: '🐍' },
+      { name: 'zebra', emoji: '🦓' }, { name: 'ayı', emoji: '🐻' }, { name: 'zürafa', emoji: '🦒' },
+      { name: 'fare', emoji: '🐭' }, { name: 'arı', emoji: '🐝' }, { name: 'tavuk', emoji: '🐔' }
     ];
-    const pick = arr => arr[Math.floor(Math.random()*arr.length)];
+    const pick = arr => arr[Math.floor(Math.random() * arr.length)];
 
-    function updateStats(){
+    function updateStats() {
       timeLeftEl.textContent = timeLeft;
       scoreEl.textContent = score;
       hitsEl.textContent = hits;
@@ -163,31 +603,39 @@
       totalStimEl.textContent = totalStim;
     }
 
-    function logRow({animal,label,match,resp,delta}){
-      const tr=document.createElement('tr');
-      const t=new Date().toLocaleTimeString('tr-TR',{hour12:false});
-      tr.innerHTML = `<td>${t}</td><td style="font-weight:700">${animal}</td><td>${label}</td><td>${match}</td><td>${resp}</td><td>${delta>0?'+':''}${delta}</td>`;
+    function logRow({ animal, label, match, resp, delta }) {
+      const tr = document.createElement('tr');
+      const t = new Date().toLocaleTimeString('tr-TR', { hour12: false });
+      const scoreColor = delta > 0 ? 'color:#22c55e' : delta < 0 ? 'color:#ef4444' : 'color:#94a3b8';
+      tr.innerHTML = `
+        <td>${t}</td>
+        <td style="font-weight:700; color:#818cf8">${animal}</td>
+        <td>${label}</td>
+        <td>${match}</td>
+        <td>${resp}</td>
+        <td style="font-weight:700; ${scoreColor}">${delta > 0 ? '+' : ''}${delta}</td>
+      `;
       logBody.prepend(tr);
     }
 
-    
-    function spawnCircleAligned(){
+    function spawnCircleAligned() {
       const rect = arena.getBoundingClientRect();
-      const pad = 20; const size = 44;
-      const x = Math.random()*(rect.width-2*pad-size)+pad;
-      const y = Math.random()*(rect.height-2*pad-size)+pad;
+      const pad = 30;
+      const size = 50;
+      const x = Math.random() * (rect.width - 2 * pad - size) + pad;
+      const y = Math.random() * (rect.height - 2 * pad - size) + pad;
 
       const d = document.createElement('div');
-      d.className='circle';
-      d.style.left = x+'px';
-      d.style.top  = y+'px';
+      d.className = 'circle';
+      d.style.left = x + 'px';
+      d.style.top = y + 'px';
 
       let clicked = false;
-      d.addEventListener('click', ()=>{
-        if(clicked) return;
+      d.addEventListener('click', () => {
+        if (clicked) return;
         clicked = true;
         circleHits++;
-        score += 10;
+        score += 5;
         updateStats();
         d.remove();
       });
@@ -195,137 +643,152 @@
       arena.appendChild(d);
 
       const lifetime = Math.max(200, STIM_INTERVAL - CIRCLE_EARLY_OFF);
-      setTimeout(()=>{
-        if(!clicked){
+      setTimeout(() => {
+        if (!clicked) {
           circleMisses++;
-          score -= 5;
           updateStats();
         }
         d.remove();
       }, lifetime);
     }
 
-    function nextStimulus(){
-      if(!running) return;
+    function nextStimulus() {
+      if (!running) return;
 
-      
-      if(current.name && current.isMatch && !current.responded){
-        score += -5; misses++; updateStats();
-        logRow({animal:current.name, label:current.shownName, match:'evet', resp:'yanıtsız', delta:-5});
+      if (current.name && current.isMatch && !current.responded) {
+        misses++;
+        updateStats();
+        logRow({ animal: current.name, label: current.shownName, match: 'evet', resp: 'yanıtsız', delta: 0 });
       }
 
       const a = pick(ANIMALS);
       let shownName = a.name;
       let isMatch = Math.random() < MATCH_PROB;
-      if(!isMatch){
+      if (!isMatch) {
         let other;
-        do { other = pick(ANIMALS).name; } while(other === a.name);
+        do { other = pick(ANIMALS).name; } while (other === a.name);
         shownName = other;
       }
 
-      current = { emoji:a.emoji, name:a.name, shownName, isMatch, responded:false };
+      current = { emoji: a.emoji, name: a.name, shownName, isMatch, responded: false };
       animalEl.textContent = a.emoji;
       nameTagEl.textContent = shownName;
-      totalStim++; updateStats();
+      totalStim++;
+      updateStats();
 
       spawnCircleAligned();
 
       stimTimerId = setTimeout(nextStimulus, STIM_INTERVAL);
     }
 
-    function handleSpace(){
-      if(!running) return;
-      if(current.responded) return;
+    function handleSpace() {
+      if (!running) return;
+      if (current.responded) return;
       current.responded = true;
 
       let delta = 0;
-      if(current.isMatch){ delta = +15; hits++; }
-      else { delta = -10; falseAlarms++; }
-      score += delta; updateStats();
-      logRow({animal:current.name, label:current.shownName, match: current.isMatch?'evet':'hayır', resp:'space', delta});
+      if (current.isMatch) {
+        delta = +5;
+        hits++;
+      } else {
+        delta = -5;
+        falseAlarms++;
+      }
+      score += delta;
+      updateStats();
+      logRow({ animal: current.name, label: current.shownName, match: current.isMatch ? 'evet' : 'hayır', resp: 'space', delta });
     }
 
-    function start(){
-      if(running) return; running=true;
-      timeLeft=60; score=0; hits=0; misses=0; falseAlarms=0; circleHits=0; circleMisses=0; totalStim=0;
-      logBody.innerHTML=''; $('#inst').style.display='none';
-      updateStats(); startBtn.disabled=true;
+    function start() {
+      if (running) return;
+      running = true;
+      timeLeft = 60;
+      score = 0;
+      hits = 0;
+      misses = 0;
+      falseAlarms = 0;
+      circleHits = 0;
+      circleMisses = 0;
+      totalStim = 0;
+      logBody.innerHTML = '';
+      $('#inst').style.display = 'none';
+      updateStats();
+      startBtn.disabled = true;
+      nextTestBtn.style.display = 'none';
 
-      timerId = setInterval(()=>{
-        timeLeft--; updateStats();
-        if(timeLeft<=0) stop();
-      },1000);
+      timerId = setInterval(() => {
+        timeLeft--;
+        updateStats();
+        if (timeLeft <= 0) stop();
+      }, 1000);
 
       nextStimulus();
     }
-function stop(){
-  running=false; 
-  startBtn.disabled=false; 
-  $('#inst').style.display='';
 
-  clearInterval(timerId); 
-  clearTimeout(stimTimerId);
+    function stop() {
+      running = false;
+      startBtn.disabled = false;
+      $('#inst').style.display = '';
 
-  animalEl.textContent='✅'; 
-  nameTagEl.textContent='Bitti';
+      clearInterval(timerId);
+      clearTimeout(stimTimerId);
 
-  if(current.name && current.isMatch && !current.responded){
-    score += -5; 
-    misses++; 
-    updateStats();
-    logRow({
-      animal: current.name,
-      label: current.shownName,
-      match: 'evet',
-      resp: 'yanıtsız',
-      delta: -5
-    });
-  }
+      animalEl.textContent = '✅';
+      nameTagEl.textContent = 'Bitti';
 
-  const s=document.createElement('tr');
-  s.innerHTML = `<td colspan="6" style="text-align:center;color:#93c5fd;font-weight:800">
-    Süre bitti • Puan: ${score} • Doğru: ${hits} • Kaçırma: ${misses} • Hatalı: ${falseAlarms}
-    • Daire Tıklama: ${circleHits} • Daire Kaçırma: ${circleMisses}
-  </td>`;
-  logBody.prepend(s);
+      if (current.name && current.isMatch && !current.responded) {
+        misses++;
+        updateStats();
+        logRow({
+          animal: current.name,
+          label: current.shownName,
+          match: 'evet',
+          resp: 'yanıtsız',
+          delta: 0
+        });
+      }
 
+      const s = document.createElement('tr');
+      s.innerHTML = `
+        <td colspan="6" style="text-align:center; color:#818cf8; font-weight:700; padding:16px; background:rgba(99,102,241,0.1)">
+          🎉 Süre bitti • Puan: ${score} • Doğru: ${hits} • Kaçırma: ${misses} • Hatalı: ${falseAlarms}
+          • Daire Tıklama: ${circleHits} • Daire Kaçırma: ${circleMisses}
+        </td>
+      `;
+      logBody.prepend(s);
 
-  const result = {
-    score,
-    hits,
-    misses,
-    falseAlarms,
-    circleHits,
-    circleMisses,
-    totalStim,
-    timestamp: new Date().toISOString()
-  };
-  localStorage.setItem('test2Result', JSON.stringify(result));
+      const result = {
+        score,
+        hits,
+        misses,
+        falseAlarms,
+        circleHits,
+        circleMisses,
+        totalStim,
+        timestamp: new Date().toISOString()
+      };
+      localStorage.setItem('test2Result', JSON.stringify(result));
 
-  if (window.TestApi) {
-    TestApi.saveTestResult('test2', {
-      score,
-      hits,
-      misses,
-      falseAlarms,
-      circleHits,
-      circleMisses,
-      totalStim
-    }).then(() => {
-      console.log('✅ Test2 sonuçları kaydedildi');
-    }).catch(err => {
-      console.warn('⚠️ Backend kayıt hatası:', err);
-    });
-  }
+      if (window.TestApi) {
+        TestApi.saveTestResult('test2', result).then(() => {
+          console.log('✅ Test2 sonuçları kaydedildi');
+        }).catch(err => {
+          console.warn('⚠️ Backend kayıt hatası:', err);
+        });
+      }
 
-  setTimeout(()=>{ 
-    window.location.href='test3.html'; 
-  }, 2000);
-}
+      nextTestBtn.style.display = 'inline-block';
+    }
 
     startBtn.addEventListener('click', start);
-    window.addEventListener('keydown', e=>{
-      if(e.code==='Space'){ e.preventDefault(); handleSpace(); }
+    nextTestBtn.addEventListener('click', () => {
+      window.location.href = 'test3.html';
+    });
+    window.addEventListener('keydown', e => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        handleSpace();
+      }
     });
   </script>
   <script src="api.js"></script>

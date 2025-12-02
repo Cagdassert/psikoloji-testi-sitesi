@@ -4,140 +4,341 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Giriş Yap</title>
-  <link rel="stylesheet" href="common.css" />
   <style>
-    .app {
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --primary-light: #818cf8;
+      --bg-main: #0f172a;
+      --bg-secondary: #1e293b;
+      --bg-card: #1e293b;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --success: #22c55e;
+      --error: #ef4444;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
-      display: grid;
-      place-items: center;
-      background: radial-gradient(1200px 800px at 50% -20%, #1f2937 0%, var(--bg) 60%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
     }
-    .login-box {
-      background: var(--panel);
-      padding: 30px;
-      border-radius: 16px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.4);
+
+    body::before {
+      content: '';
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.3), transparent);
+      border-radius: 50%;
+      top: -200px;
+      right: -200px;
+      animation: pulse 8s ease-in-out infinite;
+    }
+
+    body::after {
+      content: '';
+      position: absolute;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(168, 85, 247, 0.2), transparent);
+      border-radius: 50%;
+      bottom: -150px;
+      left: -150px;
+      animation: pulse 10s ease-in-out infinite reverse;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 0.5; }
+      50% { transform: scale(1.2); opacity: 0.8; }
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
       width: 100%;
-      max-width: 420px;
-      display: grid;
-      gap: 16px;
+      max-width: 440px;
+      animation: slideUp 0.6s ease-out;
     }
-    .login-box h2 {
-      margin: 0 0 4px;
+
+    .login-box {
+      background: rgba(30, 41, 59, 0.95);
+      backdrop-filter: blur(20px);
+      padding: 40px;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
+
+    .header {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .logo {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 16px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      box-shadow: 0 8px 16px rgba(99, 102, 241, 0.3);
+    }
+
+    h2 {
+      color: var(--text);
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
     .tabs {
       display: flex;
       gap: 8px;
-      background: #555f8a;
-      padding: 4px;
-      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.6);
+      padding: 6px;
+      border-radius: 12px;
+      margin-bottom: 24px;
     }
+
     .tabs button {
       flex: 1;
       border: none;
-      padding: 8px 0;
-      border-radius: 999px;
+      padding: 10px 0;
+      border-radius: 8px;
       background: transparent;
-      color: var(--muted);
-      font-weight: 500;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .tabs button:hover {
+      color: var(--text);
+    }
+
+    .tabs button.active {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      padding-left: 4px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 12px;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      background: rgba(15, 23, 42, 0.6);
+      color: var(--text);
+      font-size: 14px;
+      transition: all 0.3s ease;
+      outline: none;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--primary);
+      background: rgba(15, 23, 42, 0.8);
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    }
+
+    input::placeholder {
+      color: var(--text-muted);
+    }
+
+    select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 16px center;
+      padding-right: 40px;
       cursor: pointer;
     }
-    .tabs button.active {
-      background: #1d4ed8;
-      color: white;
-    }
-    .login-box input {
-      width: 100%;
-      padding: 10px 12px;
-      border-radius: 10px;
-      border: 1px solid #1f2937;
-      background: #020617;
-      color: var(--text);
-    }
-    /* YENİ: doğum tarihi select stilleri */
-    .login-box select {
-      width: 100%;
-      padding: 10px 12px;
-      border-radius: 10px;
-      border: 1px solid #1f2937;
-      background: #020617;
-      color: var(--text);
-      appearance: none;
-    }
+
     .birth-row {
       display: grid;
       grid-template-columns: 1fr 1fr 1.2fr;
-      gap: 8px;
-      margin-top: 6px;
+      gap: 12px;
     }
-    .birth-label {
-      font-size: 13px;
-      color: var(--muted);
-      margin-top: 4px;
-    }
-    .login-box button.primary {
-      margin-top: 8px;
+
+    .btn {
+      width: 100%;
+      padding: 14px 0;
       border: none;
-      padding: 10px 0;
-      border-radius: 999px;
+      border-radius: 12px;
       font-weight: 700;
-      background: linear-gradient(180deg, #2563eb, #1d4ed8);
-      color: white;
+      font-size: 15px;
       cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 8px;
+      position: relative;
+      overflow: hidden;
     }
-    .login-box button.primary:hover {
-      opacity: 0.9;
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
     }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
     .message {
-      font-size: 13px;
-      color: var(--muted);
-      min-height: 18px;
-    }
-    .message.error {
-      color: #f97373;
-    }
-    .message.success {
-      color: #4ade80;
-    }
-    footer {
       margin-top: 16px;
-      text-align: center;
-      color: var(--muted);
+      padding: 12px 16px;
+      border-radius: 12px;
       font-size: 13px;
+      font-weight: 500;
+      text-align: center;
+      min-height: 20px;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .message.error {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--error);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .message.success {
+      background: rgba(34, 197, 94, 0.1);
+      color: var(--success);
+      border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+
+    footer {
+      text-align: center;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 13px;
+      margin-top: 24px;
+      font-weight: 500;
+    }
+
+    .form-container {
+      animation: fadeIn 0.4s ease;
+    }
+
+    @media (max-width: 480px) {
+      .login-box {
+        padding: 28px 24px;
+      }
+
+      h2 {
+        font-size: 24px;
+      }
+
+      .birth-row {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="app">
-    <div>
-      <div class="login-box">
+  <div class="container">
+    <div class="login-box">
+      <div class="header">
+        <div class="logo">🧠</div>
         <h2>Psikolojik Test Sistemi</h2>
-        <p style="margin:0 0 8px; font-size:14px; color:var(--muted);">
-          Lütfen giriş yapın veya yeni kullanıcı oluşturun.
+        <p class="subtitle">
+          Lütfen giriş yapın veya yeni kullanıcı oluşturun
         </p>
+      </div>
 
-        <div class="tabs">
-          <button id="tab-login" class="active" type="button">Giriş</button>
-          <button id="tab-register" type="button">Kayıt Ol</button>
+      <div class="tabs">
+        <button id="tab-login" class="active" type="button">Giriş Yap</button>
+        <button id="tab-register" type="button">Kayıt Ol</button>
+      </div>
+
+      <div id="loginForm" class="form-container">
+        <div class="form-group">
+          <label for="login-username">Kullanıcı Adı</label>
+          <input type="text" id="login-username" placeholder="Kullanıcı adınızı girin" />
+        </div>
+        <div class="form-group">
+          <label for="login-password">Şifre</label>
+          <input type="password" id="login-password" placeholder="Şifrenizi girin" />
+        </div>
+        <button class="btn btn-primary" type="button" onclick="login()">Giriş Yap</button>
+      </div>
+
+      <div id="registerForm" class="form-container" style="display:none;">
+        <div class="form-group">
+          <label for="reg-username">Kullanıcı Adı</label>
+          <input type="text" id="reg-username" placeholder="Kullanıcı adınızı seçin" />
+        </div>
+        <div class="form-group">
+          <label for="reg-password">Şifre</label>
+          <input type="password" id="reg-password" placeholder="Güçlü bir şifre oluşturun" />
+        </div>
+        <div class="form-group">
+          <label for="reg-password2">Şifre Tekrar</label>
+          <input type="password" id="reg-password2" placeholder="Şifrenizi tekrar girin" />
         </div>
 
-        <div id="loginForm">
-          <input type="text" id="login-username" placeholder="Kullanıcı adı" />
-          <input type="password" id="login-password" placeholder="Şifre" />
-          <button class="primary" type="button" onclick="login()">Giriş Yap</button>
-        </div>
-
-        <div id="registerForm" style="display:none;">
-          <input type="text" id="reg-username" placeholder="Kullanıcı adı" />
-          <input type="password" id="reg-password" placeholder="Şifre" />
-          <input type="password" id="reg-password2" placeholder="Şifre (tekrar)" />
-
-          <!-- YENİ: Doğum tarihi alanı -->
-          <div class="birth-label">Doğum Tarihi</div>
+        <div class="form-group">
+          <label>Doğum Tarihi</label>
           <div class="birth-row">
             <select id="birth-day">
               <option value="">Gün</option>
-              <!-- 1-31 günleri JS ile de doldurabilirdik ama basit bırakıyorum -->
               <option>1</option><option>2</option><option>3</option><option>4</option><option>5</option>
               <option>6</option><option>7</option><option>8</option><option>9</option><option>10</option>
               <option>11</option><option>12</option><option>13</option><option>14</option><option>15</option>
@@ -165,7 +366,6 @@
 
             <select id="birth-year">
               <option value="">Yıl</option>
-              <!-- istersen burada elle aralık daraltırsın -->
               <option>2020</option><option>2019</option><option>2018</option><option>2017</option>
               <option>2016</option><option>2015</option><option>2014</option><option>2013</option>
               <option>2012</option><option>2011</option><option>2010</option><option>2009</option>
@@ -183,17 +383,17 @@
               <option>1964</option><option>1963</option><option>1962</option><option>1961</option>
             </select>
           </div>
-
-          <button class="primary" type="button" onclick="registerUser()">Kayıt Ol</button>
         </div>
 
-        <div id="auth-message" class="message"></div>
+        <button class="btn btn-primary" type="button" onclick="registerUser()">Kayıt Ol</button>
       </div>
 
-      <footer>
-        © <span id="year"></span> Şekiller Testi Sistemi
-      </footer>
+      <div id="auth-message" class="message"></div>
     </div>
+
+    <footer>
+      © <span id="year"></span> Psikolojik Test Sistemi
+    </footer>
   </div>
 
   <script>
@@ -258,11 +458,13 @@
 
         showMessage('Giriş başarılı, yönlendiriliyorsunuz...', 'success');
 
-        if (user.role === 'admin') {
-          window.location.href = './admin/dashboard.html';
-        } else {
-          window.location.href = './test1.html';
-        }
+        setTimeout(() => {
+          if (user.role === 'admin') {
+            window.location.href = './admin/dashboard.html';
+          } else {
+            window.location.href = './test1.html';
+          }
+        }, 800);
       } catch (err) {
         console.error('Login hatası:', err);
         showMessage('Sunucuya bağlanırken hata oluştu.', 'error');
@@ -291,7 +493,6 @@
         return;
       }
 
-      // YYYY-MM-DD formatında doğum tarihi
       const birthDate = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
 
       try {
@@ -308,14 +509,24 @@
         }
 
         showMessage('Kayıt başarılı! Şimdi giriş yapabilirsiniz.', 'success');
-        switchTab('login');
-        document.getElementById('login-username').value = username;
-        document.getElementById('login-password').value = '';
+        setTimeout(() => {
+          switchTab('login');
+          document.getElementById('login-username').value = username;
+          document.getElementById('login-password').value = '';
+        }, 1200);
       } catch (err) {
         console.error('Register hatası:', err);
         showMessage('Sunucuya bağlanırken hata oluştu.', 'error');
       }
     }
+
+    // Enter tuşu ile form gönderimi
+    document.getElementById('login-password').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') login();
+    });
+    document.getElementById('reg-password2').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') registerUser();
+    });
   </script>
 </body>
 </html>
