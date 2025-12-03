@@ -490,7 +490,7 @@
 
       if (data) {
         let html = '<div class="result-content">';
-        
+
         // Puan
         html += `<div class="stat-item">
           <span class="stat-label">🎯 Puan</span>
@@ -504,14 +504,14 @@
             <span class="stat-value success">${data.hits}</span>
           </div>`;
         }
-        
+
         if (data.misses !== undefined) {
           html += `<div class="stat-item">
             <span class="stat-label">⭕ Kaçırma</span>
             <span class="stat-value">${data.misses}</span>
           </div>`;
         }
-        
+
         if (data.falseAlarms !== undefined) {
           html += `<div class="stat-item">
             <span class="stat-label">❌ Hatalı Tıklama</span>
@@ -526,7 +526,7 @@
             <span class="stat-value success">${data.circleHits}</span>
           </div>`;
         }
-        
+
         if (data.circleMisses !== undefined) {
           html += `<div class="stat-item">
             <span class="stat-label">⚪ Daire Kaçırma</span>
@@ -541,7 +541,7 @@
             <span class="stat-value success">${data.correct}</span>
           </div>`;
         }
-        
+
         if (data.wrong !== undefined) {
           html += `<div class="stat-item">
             <span class="stat-label">❌ Yanlış Tıklama</span>
@@ -581,24 +581,26 @@
       const tbody = document.getElementById('results-body');
 
       try {
-        const results = await TestApi.getMyResults();
+        const resp = await TestApi.getMyResults();    // { results: [...] }
+        const results = resp?.results || [];          // dizi buradan
 
-        if (!results || !results.length) {
-          tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color: var(--text-muted); padding: 24px;">Kayıtlı test sonucu bulunamadı.</td></tr>';
+        if (!results.length) {
+          tbody.innerHTML =
+            '<tr><td colspan="5" style="text-align:center; color: var(--text-muted); padding: 24px;">Kayıtlı test sonucu bulunamadı.</td></tr>';
           return;
         }
 
         tbody.innerHTML = '';
         for (const r of results) {
           const tr = document.createElement('tr');
-          
+
           const detailParts = [];
           if (r.hits !== null && r.hits !== undefined) detailParts.push(`✅ ${r.hits}`);
           if (r.misses !== null && r.misses !== undefined) detailParts.push(`⭕ ${r.misses}`);
           if (r.false_alarms !== null && r.false_alarms !== undefined) detailParts.push(`❌ ${r.false_alarms}`);
-          
+
           const detailStr = detailParts.length > 0 ? detailParts.join(' • ') : '-';
-          
+
           tr.innerHTML = `
             <td style="font-weight: 600; color: var(--primary-light);">#${r.id}</td>
             <td>${formatTestName(r.test_name)}</td>
@@ -610,7 +612,8 @@
         }
       } catch (err) {
         console.error('Sonuçlar yüklenirken hata:', err);
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color: var(--error); padding: 24px;">❌ Sonuçlar yüklenirken hata oluştu.</td></tr>';
+        tbody.innerHTML =
+          '<tr><td colspan="5" style="text-align:center; color: var(--error); padding: 24px;">❌ Sonuçlar yüklenirken hata oluştu.</td></tr>';
       }
     }
 

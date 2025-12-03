@@ -1,8 +1,12 @@
 // api.js
 
-const API_BASE = '';
+// 🔹 Lokal mi canlı mı diye API_BASE seç
+const API_BASE =
+  location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+    ? 'http://localhost:4000/api'   // LOKALDE
+    : '/api';                       // SUNUCUDA (sscsl.xyz)
 
-// localStorage'dan aktif kullanıcıyı oku
+// Aktif kullanıcı
 function getCurrentUser() {
   try {
     const raw = localStorage.getItem('currentUser');
@@ -14,52 +18,81 @@ function getCurrentUser() {
   }
 }
 
-// Test sonucu kaydet
+// Küçük helper
+async function fetchJson(path, options = {}) {
+  const res = await fetch(API_BASE + path, {
+    headers: { 'Content-Type': 'application/json', ...(options.headers || {}) },
+    ...options,
+  });
+
+  if (!res.ok) {
+    const txt = await res.text();
+    console.error('API hata:', res.status, txt);
+    throw new Error(txt || 'API error');
+  }
+
+  return res.json();
+}
+
+/* ------------------------------------------------------------------ */
+/*  TEST SONUCU KAYDET                                                */
+/* ------------------------------------------------------------------ */
+
 async function saveTestResult(testName, payload) {
   try {
     const user = getCurrentUser();
-    const userId = user?.id; // giriş yaptıysa backend'e gönder
+    const userId = user?.id ?? null;
 
-    const res = await fetch(`${API_BASE}/api/test/save`, {
+    const body = {
+      userId,
+      testName,
+      ...payload,
+    };
+
+    // score'u sayı tipine çevir
+    if (body.score != null) {
+      body.score = Number(body.score);
+    }
+
+    const data = await fetchJson('/test/save', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, testName, ...payload })
+      body: JSON.stringify(body),
     });
 
-    if (!res.ok) {
-      console.error('Test kaydı hatası:', await res.text());
-      return null;
-    }
-    const data = await res.json();
-    console.log('✅ Test kaydedildi:', data);
+    console.log('Test sonucu kaydedildi:', data);
     return data;
   } catch (err) {
-    console.error('Sunucuya bağlanırken hata (saveTestResult):', err);
+    console.error('Test sonucu kaydedilemedi:', err);
     return null;
   }
 }
 
-// Aktif kullanıcının tüm sonuçları
+/* ------------------------------------------------------------------ */
+/*  KULLANICI VE ADMIN SONUÇLARI                                      */
+/* ------------------------------------------------------------------ */
+
+// Kullanıcının kendi sonuçları
 async function getMyResults() {
-  try {
-    const user = getCurrentUser();
-    const userId = user?.id;
-
-    const url = userId
-      ? `${API_BASE}/api/test/my-results?userId=${encodeURIComponent(userId)}`
-      : `${API_BASE}/api/test/my-results`;
-
-    const res = await fetch(url);
-    if (!res.ok) {
-      console.error('Sonuçları çekerken hata:', await res.text());
-      return [];
-    }
-    const data = await res.json();
-    return data.results ?? [];
-  } catch (err) {
-    console.error('Sunucuya bağlanırken hata (getMyResults):', err);
-    return [];
-  }
+  const user = getCurrentUser();
+  const userId = user?.id ?? null;
+  const q = userId ? `?userId=${userId}` : '';
+  return fetchJson(`/test/my-results${q}`);
 }
 
-window.TestApi = { saveTestResult, getMyResults, getCurrentUser };
+// Admin: tüm sonuçlar
+async function getAdminResults() {
+  return fetchJson('/admin/all-results');
+}
+
+// Admin: kullanıcı listesi
+async function getAllUsers() {
+  return fetchJson('/admin/users');
+}
+
+// ⬇️ Test sayfaları ve admin dashboard buradan kullanacak
+window.TestApi = {
+  saveTestResult,
+  getMyResults,
+  getAdminResults,
+  getAllUsers,
+};
