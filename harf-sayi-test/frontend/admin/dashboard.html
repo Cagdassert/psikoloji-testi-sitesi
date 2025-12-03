@@ -483,37 +483,50 @@
     </footer>
   </div>
 
-  <script src="../api.js"></script>
   <script>
     const API_BASE = 'http://localhost:4000';
     document.getElementById('year').textContent = new Date().getFullYear();
 
+    // Kullanıcı kontrolü
     const rawUser = localStorage.getItem('currentUser');
     if (!rawUser) {
+      console.log('Kullanıcı bulunamadı, index.html\'e yönlendiriliyor...');
       window.location.href = '../index.html';
     }
 
     let currentUser;
     try {
       currentUser = JSON.parse(rawUser);
-    } catch {
+      console.log('Mevcut kullanıcı:', currentUser);
+    } catch (err) {
+      console.error('Kullanıcı parse hatası:', err);
       localStorage.removeItem('currentUser');
       window.location.href = '../index.html';
     }
 
-    if (currentUser.role !== 'admin') {
+    // Admin kontrolü
+    if (currentUser && currentUser.role !== 'admin') {
+      console.log('Admin yetkisi yok, test1.html\'e yönlendiriliyor...');
       window.location.href = '../test1.html';
     }
 
+    // Çıkış fonksiyonu
     function logout() {
+      console.log('Çıkış yapılıyor...');
       localStorage.removeItem('currentUser');
+      console.log('localStorage temizlendi');
+      
+      // Dosya yapınıza göre doğru yol
       window.location.href = '../index.html';
+      console.log('index.html\'e yönlendirme yapıldı');
     }
 
+    // Tarih formatlama
     function formatDate(dt) {
       return new Date(dt).toLocaleString('tr-TR');
     }
 
+    // Test adı formatlama
     function formatTestName(raw) {
       switch (raw) {
         case 'test1':
@@ -527,6 +540,7 @@
       }
     }
 
+    // Süre bilgisi
     function getDurationSec(r) {
       if (r.extra && typeof r.extra === 'object' && r.extra.durationSec != null) {
         return r.extra.durationSec + ' sn';
@@ -536,6 +550,7 @@
 
     let ALL_RESULTS = [];
 
+    // Kullanıcı filtresini doldur
     function populateUserFilter() {
       const select = document.getElementById('userFilter');
       select.innerHTML = '<option value="">📋 Tüm kullanıcılar</option>';
@@ -560,6 +575,7 @@
       }
     }
 
+    // Tabloyu render et
     function renderTable(filterUserId = '') {
       const tbody = document.querySelector('#resultsTable tbody');
       const resultCountEl = document.getElementById('resultCount');
@@ -593,6 +609,7 @@
       });
     }
 
+    // Admin sonuçlarını yükle
     async function loadAdminResults() {
       const tbody = document.querySelector('#resultsTable tbody');
       tbody.innerHTML = '<tr><td colspan="9" class="loading-cell">Yükleniyor...</td></tr>';
@@ -617,11 +634,13 @@
       }
     }
 
+    // Filtre değişikliği
     document.getElementById('userFilter').addEventListener('change', (e) => {
       const value = e.target.value;
       renderTable(value);
     });
 
+    // Sayfa yüklendiğinde
     window.addEventListener('DOMContentLoaded', loadAdminResults);
   </script>
 </body>
