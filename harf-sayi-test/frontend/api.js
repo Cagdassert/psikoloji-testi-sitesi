@@ -1,10 +1,15 @@
 // api.js
 
-// 🔹 Lokal mi canlı mı diye API_BASE seç
-const API_BASE =
-  location.hostname === 'localhost' || location.hostname === '127.0.0.1'
-    ? 'http://localhost:4000/api'   // LOKALDE
-    : '/api';                       // SUNUCUDA (sscsl.xyz)
+// api.js
+
+// 🔹 Frontend lokalden açılsa bile backend hep sunucudaki olsun
+const isLocal =
+  location.hostname === 'localhost' ||
+  location.hostname === '127.0.0.1';
+
+const API_BASE = isLocal
+  ? 'http://sscsl.xyz:4000/api' // Lokal frontend → uzak backend
+  : '/api';                     // sscsl.xyz üzerindeyken → nginx /api proxy
 
 // Aktif kullanıcı
 function getCurrentUser() {

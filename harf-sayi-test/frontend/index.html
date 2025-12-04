@@ -396,8 +396,17 @@
     </footer>
   </div>
 
-  <script>
-    const API_BASE = 'http://localhost:4000';
+    <script>
+    // 🔹 Localde sayfayı açsan bile backend her zaman sunucudaki olsun
+    const isLocal =
+      location.hostname === 'localhost' ||
+      location.hostname === '127.0.0.1';
+
+    // Local frontend → http://sscsl.xyz:4000/api
+    // Canlı site (sscsl.xyz) → /api (nginx proxy)
+    const API_BASE = isLocal
+      ? 'http://sscsl.xyz:4000/api'
+      : '/api';
 
     document.getElementById('year').textContent = new Date().getFullYear();
 
@@ -441,7 +450,7 @@
       }
 
       try {
-        const res = await fetch(API_BASE + '/api/auth/login', {
+        const res = await fetch(API_BASE + '/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password })
@@ -496,7 +505,7 @@
       const birthDate = `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
 
       try {
-        const res = await fetch(API_BASE + '/api/auth/register', {
+        const res = await fetch(API_BASE + '/auth/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password, birthDate })
@@ -528,5 +537,6 @@
       if (e.key === 'Enter') registerUser();
     });
   </script>
+
 </body>
 </html>
